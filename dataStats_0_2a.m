@@ -37,8 +37,21 @@ for i1 = 4 : 1 : resultFolderCleandedDirInfoLength
                 regions(1,  1) = 1;
                 regions(length(regions), 1) = length(index);
                 for r1 = 1 : 2 : length(regions)
-                
-                
+                    % Time
+                    data_time = 0;
+                    
+                    % Vehicle Speed
+                    data_vehicleSpeed = 0;
+                    
+                    % Vehicle detection: relative speed
+                    
+                    
+                    
+                    % Vehicle detection: distance to object
+                    
+                    
+                    
+                    % GPS data
                     
                     
                 end    
