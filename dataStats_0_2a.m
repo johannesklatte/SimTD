@@ -8,7 +8,7 @@ resultFolderCleandedDirInfo = dir;
 
 [resultFolderCleandedDirInfoLength , j1] = size(resultFolderCleandedDirInfo);
 
-for i1 = 4 : 1 : resultFolderCleandedDirInfoLength
+for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
     FolderCount = i1
     if(strcmp(resultFolderCleandedDirInfo(i1).name, '.') || strcmp(resultFolderCleandedDirInfo(i1).name, '..' ))
         %do nothing       
@@ -37,21 +37,28 @@ for i1 = 4 : 1 : resultFolderCleandedDirInfoLength
                 regions(1,  1) = 1;
                 regions(length(regions), 1) = length(index);
                 for r1 = 1 : 2 : length(regions)
+                    % Entries from original table
+                    data_entryCount = 0;
+                    
                     % Time
-                    data_time = 0;
+                    data_time = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 1};
                     
                     % Vehicle Speed
-                    data_vehicleSpeed = 0;
+                    data_vehicleSpeed = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 9};
                     
                     % Vehicle detection: relative speed
-                    
-                    
+                    data_vehicleRelativeSpeed = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 19};
                     
                     % Vehicle detection: distance to object
-                    
-                    
+                    data_vehicleDistanceToObject = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 20};
                     
                     % GPS data
+                    
+                    
+                    
+                    
+                    % Interpolation of some of the data points
+                    
                     
                     
                 end    
