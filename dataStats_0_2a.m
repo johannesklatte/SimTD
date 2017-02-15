@@ -1,6 +1,6 @@
 clear;
 
-resultFolderCleandedPath = 'D:\SimTD\TEST\results_joined';
+resultFolderCleandedPath = 'D:\SimTD\results_joined';
 
 cd(resultFolderCleandedPath);
 
@@ -8,11 +8,7 @@ resultFolderCleandedDirInfo = dir;
 
 [resultFolderCleandedDirInfoLength , j1] = size(resultFolderCleandedDirInfo);
 
-overallTable = cell2table({});
-
-sectionTable = cell2table({});
-
-for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
+for i1 = 4 : 1 : resultFolderCleandedDirInfoLength
     FolderCount = i1
     if(strcmp(resultFolderCleandedDirInfo(i1).name, '.') || strcmp(resultFolderCleandedDirInfo(i1).name, '..' ))
         %do nothing       
@@ -26,168 +22,62 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
             if(strcmp(subFolderDirInfo(i2).name, '.') || strcmp(subFolderDirInfo(i2).name, '..' ))
                 %do nothing       
             else
-                data = load(subFolderDirInfo(i2).name, 'data');
-                data = data.data;
+                T_filtered = load(subFolderDirInfo(i2).name, 'T_filtered');
+                T_filtered = T_filtered.T_filtered;
+                parameterIndices = [1,2,3,4,5,9,12];
+                [i3b, parameterIndicesSize] = size(parameterIndices);
                 
-                obj_detection_data = data{: , 18};
-                index = find(obj_detection_data == 1);
-                if(length(index) > 10)
-                    indexDiff = diff(index);
-                    regionsTemp = find(indexDiff > 100);
-                    regions = zeros(2*length(regionsTemp) + 2, 1);
-                    for rTemp = 1 : 1 : length(regionsTemp)
-                        regions(2*rTemp,   1) = regionsTemp(rTemp,1);
-                        regions(2*rTemp+1, 1) = regionsTemp(rTemp,1)+1;
-                    end
-                    regions(1,  1) = 1;
-                    regions(length(regions), 1) = length(index);
-                    driveId = 1;
-                    sectionId = 1;
-                    sectionArray = zeros(height(data), 30);
-                    startIndex = 1;
-                    for r1 = 1 : 2 : length(regions)
-                        % Time
-                        data_time = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 1};
-                        
-                        % Section time
-                        section_time = data_time - data_time(1,1);
-                        
-                        % Row index
-                        row_Index = index(regions(r1,1),1) : index(regions(r1+1,1) ,1);
-                        row_index = transpose(row_Index);
-
-                        % Vehicle Speed
-                        data_vehicleSpeed = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 9};
-                        fittype = 'poly1';
-                        data_vehicleSpeed_idx = ~isnan(data_vehicleSpeed);
-                        data_vehicleSpeed_temp = data_vehicleSpeed(data_vehicleSpeed_idx);
-                        if(length(data_vehicleSpeed_temp) < 2)
-                            data_vehicleSpeed_mean = NaN;
-                            data_vehicleSpeed_median = NaN;
-                            data_vehicleSpeed_mean = NaN;
-                        else
-                            data_time_temp = data_time(data_vehicleSpeed_idx);
-                            data_vehicleSpeed_fit = fit(data_time_temp, data_vehicleSpeed_temp, fittype);
-                            plot(data_vehicleSpeed_fit, data_time, data_vehicleSpeed)
-                            data_vehicleSpeed_mean = mean(data_vehicleSpeed_temp)
-                            data_vehicleSpeed_median = median(data_vehicleSpeed_temp)
-                            data_vehicleSpeed_std = std(data_vehicleSpeed_temp)
-                        end
-                        
-                        % Vehicle detection: relative speed
-                        data_vehicleRelativeSpeed = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 19};
-                        data_vehicleRelativeSpeed_idx = ~isnan(data_vehicleRelativeSpeed);
-                        data_vehicleRelativeSpeed_temp = data_vehicleRelativeSpeed(data_vehicleRelativeSpeed_idx);
-                        if(length(data_vehicleRelativeSpeed_temp) < 2)
-                            data_vehicleRelativeSpeed_mean = NaN;
-                            data_vehicleRelativeSpeed_median = NaN;
-                            data_vehicleRelativeSpeed_std = NaN;                            
-                        else
-                            data_time_temp = data_time(data_vehicleRelativeSpeed_idx);
-                            data_vehicleRelativeSpeed_fit = fit(data_time_temp, data_vehicleRelativeSpeed_temp, fittype);
-                            plot(data_vehicleRelativeSpeed_fit, data_time, data_vehicleRelativeSpeed)
-                            data_vehicleRelativeSpeed_mean = mean(data_vehicleRelativeSpeed_temp);
-                            data_vehicleRelativeSpeed_median = median(data_vehicleRelativeSpeed_temp);
-                            data_vehicleRelativeSpeed_std = std(data_vehicleRelativeSpeed_temp);
-                        end
-
-                        % Vehicle detection: distance to object
-                        data_vehicleDistanceToObject = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 20};
-
-                        % GPS data
-                        
-                        
-                        
-                        
-                        % Write data into the section table
-                        endIndex = startIndex + length(data_time) - 1;
-                        sectionArray(startIndex : endIndex, 1) = sectionId;
-                        sectionArray(startIndex : endIndex, 2) = row_Index;
-                        sectionArray(startIndex : endIndex, 3) = section_time;                       
-                        sectionArray(startIndex : endIndex, 4) = 1; 
-                        sectionArray(startIndex : endIndex, 5) = 1; 
-                        sectionArray(startIndex : endIndex, 6) = 1; 
-                        sectionArray(startIndex : endIndex, 7) = 1;
-                        
-                        
-                        
-                        startIndex = endIndex + 1;
-                        sectionId = sectionId +1;
-
-
-                        %%%%%%% Data is dense enough -> no immediate need for interpolation  
-                        % Interpolation of some of the data points
-                        %xq = data_time;
-
-                        % Interpolation method 
-                        %method = 'linear';  % spline ,
-
-                        % Interpolation of the vehicle speed
-
-
-                        % Interpolation of the vehicle speed
-
-
-                        % Interpolation of the relative speed 
-
-
-                        % Interpolation of the distance to object
-
-                        %%%%%%% Data is dense enough -> no immediate need for interpolation
-
-                        %driveTableTemp = cell2table(cell(0,9), 'VariableNames', {'driveId', 'time', 'vehicleSpeed', 'Put_Ask', ...
-                        %    'Put_Bid', 'Put_Delta', 'Put_ImplVol', ...
-                        %    'Date', 'DateNM'});
-                        %driveTable = driveTable + driveTableTemp;
-
-
-
-                        driveId = driveId + 1; 
-                    end   
-                else
-                    
+                
+                %TEST TEST TEST  %TEST TEST TEST
+                tic
+                testData = T_filtered{: , 12};
+                index = find(strcmp(testData, '1'));
+                indexDiff = diff(index);
+                regionsTemp = find(indexDiff > 100);
+                regions = zeros(2*length(regionsTemp) + 2, 1);
+                for rTemp = 1 : 1 : length(regionsTemp)
+                    regions(2*rTemp,   1) = regionsTemp(rTemp,1);
+                    regions(2*rTemp+1, 1) = regionsTemp(rTemp,1)+1;
                 end
+                regions(1,  1) = 1;
+                regions(length(regions), 1) = length(index);
+                
+                for r1 = 1 : 2 : length(regions)
+                    dataTest_0 = T_filtered{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 3};
+                    dataTest_0 = str2double(dataTest_0);
                     
+                    dataTest_0b = T_filtered{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 8};
+                    dataTest_0b = str2double(dataTest_0b);
                     
-                %for r1 = 1 : 2 : length(regions)
-                    %dataTest_time = T_filtered{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 1};
-                    
-                    
-                    %dataTest_0 = T_filtered{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 3};
-                    %dataTest_0 = str2double(dataTest_0);
-                    
-                    %dataTest_0b = T_filtered{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 8};
-                    %dataTest_0b = str2double(dataTest_0b);
-                    
-                    %speedIndex = find(isnan(dataTest_0));
-                    %dataTest_0(speedIndex) = dataTest_0b(speedIndex);
+                    speedIndex = find(isnan(dataTest_0));
+                    dataTest_0(speedIndex) = dataTest_0b(speedIndex);
                     %dataTest_0(dataTest_0 == 0) = NaN;
                     
-                    %dataTest_1 = T_filtered{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 14};
-                    %dataTest_2 = T_filtered{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 13};
+                    dataTest_1 = T_filtered{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 14};
+                    dataTest_2 = T_filtered{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 13};
                     
-                    %x = find(~strcmp(dataTest_1, ''));
-                    %oDist = str2double(dataTest_1(x));
+                    x = find(~strcmp(dataTest_1, ''));
+                    oDist = str2double(dataTest_1(x));
 
-                    %o_vRel = str2double(dataTest_2(x));
+                    o_vRel = str2double(dataTest_2(x));
                     
-                    %method = 'linear'; % spline , 
+                    method = 'linear'; % spline , 
 
-                    %xq = transpose(1:1:length(dataTest_1));
-                    %oDistq = interp1(x, oDist, xq, method);
+                    xq = transpose(1:1:length(dataTest_1));
+                    oDistq = interp1(x, oDist, xq, method);
 
-                    %vRelq = interp1(x, o_vRel, xq, method);
+                    vRelq = interp1(x, o_vRel, xq, method);
 
                     %x = x+100;
                     %xq = xq + 100;
 
-                    %xSpeed = find(~isnan(dataTest_0));
-                    %vSpeed = dataTest_0(xSpeed);
+                    xSpeed = find(~isnan(dataTest_0));
+                    vSpeed = dataTest_0(xSpeed);
                 
-                    %figure
-                    %plot(x,oDist,'o', xq,oDistq,'--', x,o_vRel,'o', xq,vRelq,':.', xSpeed, vSpeed,'x');
+                    figure
+                    plot(x,oDist,'o', xq,oDistq,':.', x,o_vRel,'o', xq,vRelq,':.', xSpeed, vSpeed,'x');
                     
-                %end
+                end
                 
                 
                 %padding = NaN(100,1);
@@ -198,11 +88,11 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
 
                 
                 
-                %dataTest_1 = str2double(dataTest_1);
+                dataTest_1 = str2double(dataTest_1);
                 %testData = str2double(testData);
                 %found = find(testData > 0.5);
                 %logicalTemp2 = ~ismissing(testData);
-                %toc
+                toc
                 
                 
                 %testDataDobule = find(testData);
@@ -279,8 +169,8 @@ end
 
 
 
-%save('EngineSpeed.mat', 'engineSpeed');
-%save('VehicleSpeed.mat', 'vehicleSpeed');
-%save('GPSData.mat', 'gpsData');
-%save('Acceleration.mat', 'acceleration');
-%save('ObjectDetection.mat', 'objectDetection');
+save('EngineSpeed.mat', 'engineSpeed');
+save('VehicleSpeed.mat', 'vehicleSpeed');
+save('GPSData.mat', 'gpsData');
+save('Acceleration.mat', 'acceleration');
+save('ObjectDetection.mat', 'objectDetection');
