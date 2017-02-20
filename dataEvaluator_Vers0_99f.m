@@ -1,8 +1,6 @@
 %
-tempdir
 clear all;
-setenv('TEMP', 'D:\SimTD\temp');% TEMP for Windows
-tempdir
+setenv('TEMP', 'C:\Temp');% TEMP for Windows
 clear;
 
 % Get System Information about system memory
@@ -15,18 +13,18 @@ numberOfCores = feature('numcores');
 %dataFolderName = uigetdir('C:\', 'Select folder that contains all *.tar files');
 %dataFolderName = 'G:\decoded';
 % dataFolderName = 'C:\Users\Johannes_Work\Downloads\Studium\HIWI\TEST\DATA';
-dataFolderName = 'D:\SimTD\data';
+dataFolderName = 'C:\Users\Johannes_Work\Downloads\Studium\HIWI\TEST\DATA';
 
 %untarFolderName = uigetdir('C:\', 'Select folder to untar data to');
 %untarFolderName = 'C:\Users\Johannes_Work\Downloads\Studium\HIWI\UNPACK';
 %untarFolderName = 'G:\decoded_test';
 % untarFolderName = 'C:\Users\Johannes_Work\Downloads\Studium\HIWI\TEST\UNPACK';
-untarFolderName = 'D:\SimTD\unpack';
+untarFolderName = 'C:\Users\Johannes_Work\Downloads\Studium\HIWI\TEST\UNPACK';
 
 %resultsFolderName = uigetdir('C:\', 'Select folder to save filtered data tables in');
 %resultsFolderName = 'C:\Users\Johannes_Work\Downloads\Studium\HIWI\RESULTS';
 % resultsFolderName = 'C:\Users\Johannes_Work\Downloads\Studium\HIWI\TEST\RESULTS';
-resultsFolderName = 'D:\SimTD\results';
+resultsFolderName = 'C:\Users\Johannes_Work\Downloads\Studium\HIWI\TEST\RESULTS';
 
 cd(dataFolderName);
 MyDirInfo = dir;
@@ -563,12 +561,8 @@ for iUntar = 1 : 1 : dirLength
     if(dirBool == 1)
         cd(untarFolderName);
         removeDir = strcat(untarFolderName, '\', outputdir);
-        try
-            statusClose1 = fclose(fileID);
-            statusClose2 = fclose('all');  
-        catch
-            
-        end
+        statusClose1 = fclose(fileID);
+        statusClose2 = fclose('all');               	             
         FIDs = fopen('all');
         [statusErase, messageErase, messageidErase] = rmdir(outputdir, 's');
     end;
