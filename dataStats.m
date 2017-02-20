@@ -78,7 +78,16 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                             data_vehicleDistanceToObject_std = NaN;
                             data_vehicleDistanceToObject_fit_p1 = NaN;
                             data_vehicleDistanceToObject_fit_p2 = NaN;
-
+                            
+                            data_vehicleDistanceToObjectInSecondsStart = NaN;
+                            data_vehicleDistanceToObjectInSecondsEnd = NaN; 
+                            data_vehicleDistanceToObjectInSeconds_mean = NaN;
+                            data_vehicleDistanceToObjectInSeconds_std = NaN;
+                            data_vehicleDistanceToObjectInSeconds_fit_p1 = NaN;
+                            data_vehicleDistanceToObjectInSeconds_fit_p2 = NaN;
+                            
+                            data_vehicleSpeedZeroValueFlag = 0;
+                            data_vehicleSpeed_GPSZeroValueFlag = 0;
 
                             % Time
                             data_time = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 1};
@@ -97,7 +106,17 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                             data_vehicleSpeed = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 9};
                             data_vehicleSpeed_GPS = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 14};
                             data_vehicleSpeed_idx = ~isnan(data_vehicleSpeed);
+                            data_vehicleSpeed_GPS_idx = ~isnan(data_vehicleSpeed_GPS);
                             data_vehicleSpeed_temp = data_vehicleSpeed(data_vehicleSpeed_idx);
+                            data_vehicleSpeed_GPS_temp = data_vehicleSpeed(data_vehicleSpeed_GPS_idx);
+                            if(~isempty(find(data_vehicleSpeed_temp == 0)))
+                                data_vehicleSpeedZeroValueFlag = 1;
+                            end
+                            
+                            if(~isempty(find(data_vehicleSpeed_GPS_temp == 0)))
+                                data_vehicleSpeed_GPSZeroValueFlag = 1;
+                            end
+                            
                             if(length(data_vehicleSpeed_temp) < 2)
                                 % 
                             else
@@ -134,7 +153,7 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                                 data_vehicleRelativeSpeedEnd = data_vehicleRelativeSpeed_temp(end);                                
                             end
 
-                            % Vehicle detection: distance to object
+                            % Vehicle detection: distance to object in meters
                             data_vehicleDistanceToObject = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 20};
                             data_vehicleDistanceToObject_idx = ~isnan(data_vehicleDistanceToObject);
                             data_vehicleDistanceToObject_temp = data_vehicleDistanceToObject(data_vehicleDistanceToObject_idx);
@@ -152,7 +171,70 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                                 data_vehicleDistanceToObject_std = std(data_vehicleDistanceToObject_temp);
                                 data_vehicleDistanceToObjectStart = data_vehicleDistanceToObject_temp(1);
                                 data_vehicleDistanceToObjectEnd = data_vehicleDistanceToObject_temp(end);                                
-                            end                                
+                            end  
+                            
+                            % Vehicle detection: distance to object in seconds
+                            lengthDistInSec = length(data_vehicleSpeed_idx);
+                            data_vehicleDistanceToObjectInSeconds = zeros(lengthDistInSec, 1);
+                            for iDistInSec = 1 : 1 : lengthDistInSec
+                                if(~isnan(data_vehicleDistanceToObject(iDistInSec)))
+                                    if(~isnan(data_vehicleSpeed(iDistInSec)))
+                                        data_vehicleDistanceToObjectInSeconds(iDistInSec) = data_vehicleDistanceToObject(iDistInSec) / ...
+                                            (data_vehicleSpeed(iDistInSec) / 3.6);
+                                    elseif(~isnan(data_vehicleSpeed_GPS(iDistInSec)))
+                                        data_vehicleDistanceToObjectInSeconds(iDistInSec) = data_vehicleDistanceToObject(iDistInSec) / ...
+                                            (data_vehicleSpeed_GPS(iDistInSec) / 3.6);
+                                    else
+                                        %find nearest data_vehicleSpeed or
+                                        %data_vehicleSpeed_GPS data point
+                                        for ifind = 1 : 1 : lengthDistInSec
+                                            if((iDistInSec - ifind) >= 1 && ~isnan(data_vehicleSpeed(iDistInSec- ifind)))
+                                                data_vehicleDistanceToObjectInSeconds(iDistInSec) = data_vehicleDistanceToObject(iDistInSec - ifind) / ...
+                                                    (data_vehicleSpeed(iDistInSec) / 3.6);
+                                                break
+                                            elseif((iDistInSec + ifind) <= lengthDistInSec && ~isnan(data_vehicleSpeed(iDistInSec + ifind)))
+                                                data_vehicleDistanceToObjectInSeconds(iDistInSec) = data_vehicleDistanceToObject(iDistInSec) / ...
+                                                    (data_vehicleSpeed(iDistInSec + ifind) / 3.6);
+                                                break
+                                            elseif((iDistInSec - ifind) >= 1 && ~isnan(data_vehicleSpeed_GPS(iDistInSec - ifind)))
+                                                data_vehicleDistanceToObjectInSeconds(iDistInSec) = data_vehicleDistanceToObject(iDistInSec) / ...
+                                                    (data_vehicleSpeed_GPS(iDistInSec - ifind) / 3.6);
+                                                break
+                                            elseif((iDistInSec + ifind) <= lengthDistInSec && ~isnan(data_vehicleSpeed_GPS(iDistInSec + ifind)))
+                                                data_vehicleDistanceToObjectInSeconds(iDistInSec) = data_vehicleDistanceToObject(iDistInSec) / ...
+                                                    (data_vehicleSpeed_GPS(iDistInSec + ifind) / 3.6);
+                                                break
+                                            %else
+                                            end
+                                        end
+                                    end
+                                else
+                                    data_vehicleDistanceToObjectInSeconds(iDistInSec) = NaN;
+                                end
+                            end
+                            
+                            data_vehicleDistanceToObjectInSeconds_idx = ~isnan(data_vehicleDistanceToObjectInSeconds);
+                            data_vehicleDistanceToObjectInSeconds_temp = data_vehicleDistanceToObjectInSeconds(data_vehicleDistanceToObjectInSeconds_idx);
+                            if(length(data_vehicleDistanceToObjectInSeconds_temp) < 2)
+                                %
+                            else 
+                                data_time_temp = data_time(data_vehicleDistanceToObjectInSeconds_idx);
+                                data_time_temp = data_time_temp - min(data_time_temp);
+                                fittype = 'poly1';                                
+                                data_vehicleDistanceToObjectInSeconds_fit = fit(data_time_temp, data_vehicleDistanceToObjectInSeconds_temp, fittype);
+                                data_vehicleDistanceToObjectInSeconds_p1 = data_vehicleDistanceToObjectInSeconds_fit.p1;
+                                data_vehicleDistanceToObjectInSeconds_p2 = data_vehicleDistanceToObjectInSeconds_fit.p2;
+                                plot(data_vehicleDistanceToObjectInSeconds_fit, data_time_temp, data_vehicleDistanceToObjectInSeconds_temp)                                
+                                data_vehicleDistanceToObjectInSeconds_mean = mean(data_vehicleDistanceToObjectInSeconds_temp);
+                                data_vehicleDistanceToObjectInSeconds_std = std(data_vehicleDistanceToObjectInSeconds_temp);
+                                data_vehicleDistanceToObjectInSecondsStart = data_vehicleDistanceToObjectInSeconds_temp(1);
+                                data_vehicleDistanceToObjectInSecondsEnd = data_vehicleDistanceToObjectInSeconds_temp(end); 
+                            end                       
+                            
+                            
+                            
+                            
+                            
                            
                             % GPS data
                             data_GPS_Lat = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 10};                            
@@ -175,15 +257,16 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                             sectionArray(startIndex : endIndex, 2) = rowId;                         % Row ID
                             sectionArray(startIndex : endIndex, 3) = section_time;                  % Section time 
                             sectionArray(startIndex : endIndex, 4) = data_engineSpeed;              %
-                            sectionArray(startIndex : endIndex, 5) = data_vehicleSpeed; 
-                            sectionArray(startIndex : endIndex, 6) = data_vehicleSpeed_GPS; 
+                            sectionArray(startIndex : endIndex, 5) = data_vehicleSpeed;
+                            sectionArray(startIndex : endIndex, 6) = data_vehicleSpeed_GPS;
                             sectionArray(startIndex : endIndex, 7) = data_vehicleRelativeSpeed; 
                             sectionArray(startIndex : endIndex, 8) = data_vehicleDistanceToObject;
-                            sectionArray(startIndex : endIndex, 9) = data_GPS_Lat;
-                            sectionArray(startIndex : endIndex, 10) = data_GPS_Lon;
-                            sectionArray(startIndex : endIndex, 11) = data_GPS_Heading;
-                            sectionArray(startIndex : endIndex, 12) = Lon_acc;
-                            sectionArray(startIndex : endIndex, 13) = Lat_acc;                            
+                            sectionArray(startIndex : endIndex, 9) = data_vehicleDistanceToObjectInSeconds;
+                            sectionArray(startIndex : endIndex, 10) = data_GPS_Lat;
+                            sectionArray(startIndex : endIndex, 11) = data_GPS_Lon;
+                            sectionArray(startIndex : endIndex, 12) = data_GPS_Heading;
+                            sectionArray(startIndex : endIndex, 13) = Lon_acc;
+                            sectionArray(startIndex : endIndex, 14) = Lat_acc;                            
 
 
                             % Write data into the overall array
@@ -197,22 +280,29 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                             overallCellArray{sectionId, 8} = data_vehicleSpeed_std;
                             overallCellArray{sectionId, 9} = data_vehicleSpeed_fit_p1;
                             overallCellArray{sectionId, 10} = data_vehicleSpeed_fit_p2;
-                            overallCellArray{sectionId, 11} = data_vehicleRelativeSpeedStart;
-                            overallCellArray{sectionId, 12} = data_vehicleRelativeSpeedEnd;
-                            overallCellArray{sectionId, 13} = data_vehicleRelativeSpeed_mean;
-                            overallCellArray{sectionId, 14} = data_vehicleRelativeSpeed_std;
-                            overallCellArray{sectionId, 15} = data_vehicleRelativeSpeed_fit_p1;
-                            overallCellArray{sectionId, 16} = data_vehicleRelativeSpeed_fit_p2;
-                            overallCellArray{sectionId, 17} = data_vehicleDistanceToObjectStart;
-                            overallCellArray{sectionId, 18} = data_vehicleDistanceToObjectEnd;
-                            overallCellArray{sectionId, 19} = data_vehicleDistanceToObject_mean;                            
-                            overallCellArray{sectionId, 20} = data_vehicleDistanceToObject_std;                            
-                            overallCellArray{sectionId, 21} = data_vehicleDistanceToObject_fit_p1;                            
-                            overallCellArray{sectionId, 22} = data_vehicleDistanceToObject_fit_p2;                            
-                            overallCellArray{sectionId, 23} = min(data_GPS_Lat_clean);                            
-                            overallCellArray{sectionId, 24} = max(data_GPS_Lat_clean);                            
-                            overallCellArray{sectionId, 25} = min(data_GPS_Lon_clean);                            
-                            overallCellArray{sectionId, 26} = max(data_GPS_Lon_clean);
+                            overallCellArray{sectionId, 11} = data_vehicleSpeedZeroValueFlag;
+                            overallCellArray{sectionId, 12} = data_vehicleRelativeSpeedStart;
+                            overallCellArray{sectionId, 13} = data_vehicleRelativeSpeedEnd;
+                            overallCellArray{sectionId, 14} = data_vehicleRelativeSpeed_mean;
+                            overallCellArray{sectionId, 15} = data_vehicleRelativeSpeed_std;
+                            overallCellArray{sectionId, 16} = data_vehicleRelativeSpeed_fit_p1;
+                            overallCellArray{sectionId, 17} = data_vehicleRelativeSpeed_fit_p2;
+                            overallCellArray{sectionId, 18} = data_vehicleDistanceToObjectStart;
+                            overallCellArray{sectionId, 19} = data_vehicleDistanceToObjectEnd;
+                            overallCellArray{sectionId, 20} = data_vehicleDistanceToObject_mean;                            
+                            overallCellArray{sectionId, 21} = data_vehicleDistanceToObject_std;                            
+                            overallCellArray{sectionId, 22} = data_vehicleDistanceToObject_fit_p1;                            
+                            overallCellArray{sectionId, 23} = data_vehicleDistanceToObject_fit_p2;    
+                            overallCellArray{sectionId, 24} = data_vehicleDistanceToObjectInSecondsStart;
+                            overallCellArray{sectionId, 25} = data_vehicleDistanceToObjectInSecondsEnd;
+                            overallCellArray{sectionId, 26} = data_vehicleDistanceToObjectInSeconds_mean;                            
+                            overallCellArray{sectionId, 27} = data_vehicleDistanceToObjectInSeconds_std;                            
+                            overallCellArray{sectionId, 28} = data_vehicleDistanceToObjectInSeconds_fit_p1;                            
+                            overallCellArray{sectionId, 29} = data_vehicleDistanceToObjectInSeconds_fit_p2;                             
+                            overallCellArray{sectionId, 30} = min(data_GPS_Lat_clean);                            
+                            overallCellArray{sectionId, 31} = max(data_GPS_Lat_clean);                            
+                            overallCellArray{sectionId, 32} = min(data_GPS_Lon_clean);                            
+                            overallCellArray{sectionId, 33} = max(data_GPS_Lon_clean);
 
                             startIndex = endIndex + 1;
                             sectionId  = sectionId +1; 
@@ -228,8 +318,8 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                     sectionArray = sectionArray(1:endIndex, : );
                     sectionTable = array2table(sectionArray, 'VariableNames', ...
                         {'SectionID' 'RowID' 'SectionTime' 'EngineSpeed' 'VehicleSpeed' ...
-                        'VehicleSpeedGPS' 'VehicleRelativeSpeed' 'VehicleDistanceToObject' 'GPSLat' 'GPSLon' ...
-                        'GPSHeading' 'LonAcc' 'LatAcc'});
+                        'VehicleSpeedGPS' 'VehicleRelativeSpeed' 'VehicleDistanceToObjectInMeters' ...
+                        'VehicleDistanceToObjectInSeconds' 'GPSLat' 'GPSLon' 'GPSHeading' 'LonAcc' 'LatAcc'});
                     currentDir = pwd;
                     mkdir(resultFolderDrivesPath, resultFolderCleandedDirInfo(i1).name);
                     resultFolderDrives = strcat(resultFolderDrivesPath, '\', resultFolderCleandedDirInfo(i1).name);
@@ -247,9 +337,14 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                     overallTable_temp = cell2table(overallCellArray, 'VariableNames', ...
                         {'Date' 'DriveID' 'SectionID' 'SectionLength' 'vehicleSpeedStart' ... 
                         'VehicleSpeedEnd' 'VehicleSpeedMean' 'VehicleSpeedStd' 'VehicleSpeedP1' 'VehicleSpeedP2' ...
-                        'VehicleRelativeSpeedStart' 'VehicleRelativeSpeedEnd' 'VehicleRelativeSpeedMean' 'VehicleRelativeSpeedStd' 'VehicleRelativeSpeedP1' ...
-                        'VehicleRelativeSpeedP2' 'VehicleDistanceToObjectStart' 'VehicleDistanceToObjectEnd' 'VehicleDistanceToObjectMean' 'VehicleDistanceToObjectStd' ...
-                        'VehicleDistanceToObjectP1' 'VehicleDistanceToObjectP2' 'GPSLatMin' 'GPSLatMax' 'GPSLonMin' 'GPSLonMax'});
+                        'VehicleSpeedZeroValueFlag' 'VehicleRelativeSpeedStart' 'VehicleRelativeSpeedEnd' ...
+                        'VehicleRelativeSpeedMean' 'VehicleRelativeSpeedStd' 'VehicleRelativeSpeedP1' ...
+                        'VehicleRelativeSpeedP2' 'VehicleDistanceToObjectStart' 'VehicleDistanceToObjectEnd' ...
+                        'VehicleDistanceToObjectMean' 'VehicleDistanceToObjectStd' ...
+                        'VehicleDistanceToObjectP1' 'VehicleDistanceToObjectP2' 'VehicleDistanceToObjectInSecondsStart' ...
+                        'VehicleDistanceToObjectInSecondsEnd' 'VehicleDistanceToObjectInSecondsMean' ...
+                        'VehicleDistanceToObjectInSecondsStd' 'VehicleDistanceToObjectInSecondsP1' 'VehicleDistanceToObjectInSecondsP2' ... 
+                        'GPSLatMin' 'GPSLatMax' 'GPSLonMin' 'GPSLonMax'});
                 else
                     %
                 end
