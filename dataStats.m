@@ -222,8 +222,8 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                                 data_time_temp = data_time_temp - min(data_time_temp);
                                 fittype = 'poly1';                                
                                 data_vehicleDistanceToObjectInSeconds_fit = fit(data_time_temp, data_vehicleDistanceToObjectInSeconds_temp, fittype);
-                                data_vehicleDistanceToObjectInSeconds_p1 = data_vehicleDistanceToObjectInSeconds_fit.p1;
-                                data_vehicleDistanceToObjectInSeconds_p2 = data_vehicleDistanceToObjectInSeconds_fit.p2;
+                                data_vehicleDistanceToObjectInSeconds_fit_p1 = data_vehicleDistanceToObjectInSeconds_fit.p1;
+                                data_vehicleDistanceToObjectInSeconds_fit_p2 = data_vehicleDistanceToObjectInSeconds_fit.p2;
                                 plot(data_vehicleDistanceToObjectInSeconds_fit, data_time_temp, data_vehicleDistanceToObjectInSeconds_temp)                                
                                 data_vehicleDistanceToObjectInSeconds_mean = mean(data_vehicleDistanceToObjectInSeconds_temp);
                                 data_vehicleDistanceToObjectInSeconds_std = std(data_vehicleDistanceToObjectInSeconds_temp);
@@ -245,6 +245,8 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                             data_GPS_Lon_idx = ~isnan(data_GPS_Lon);
                             data_GPS_Lon_clean = data_GPS_Lon(data_GPS_Lon_idx);
                             data_GPS_Heading = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 12};
+                            
+                            
                             
                             % Acceleration data
                             Lon_acc = data{index(regions(r1,1),1) : index(regions(r1+1,1) ,1), 15};
@@ -334,7 +336,7 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                 % Save overall table
                 if(~isempty(overallCellArray{1,1}))
                     overallCellArray = overallCellArray(1:sectionId - 1, :);
-                    overallTable_temp = cell2table(overallCellArray, 'VariableNames', ...
+                    overallTable = cell2table(overallCellArray, 'VariableNames', ...
                         {'Date' 'DriveID' 'SectionID' 'SectionLength' 'vehicleSpeedStart' ... 
                         'VehicleSpeedEnd' 'VehicleSpeedMean' 'VehicleSpeedStd' 'VehicleSpeedP1' 'VehicleSpeedP2' ...
                         'VehicleSpeedZeroValueFlag' 'VehicleRelativeSpeedStart' 'VehicleRelativeSpeedEnd' ...
@@ -345,18 +347,25 @@ for i1 = 1 : 1 : resultFolderCleandedDirInfoLength
                         'VehicleDistanceToObjectInSecondsEnd' 'VehicleDistanceToObjectInSecondsMean' ...
                         'VehicleDistanceToObjectInSecondsStd' 'VehicleDistanceToObjectInSecondsP1' 'VehicleDistanceToObjectInSecondsP2' ... 
                         'GPSLatMin' 'GPSLatMax' 'GPSLonMin' 'GPSLonMax'});
-                else
-                    %
-                end
-                if(height(overallTable) ~= 0)
-                    overallTable = [overallTable; overallTable_temp];
                     currentDir = pwd;
-                    cd(resultFolderDrivesPath);
+                    mkdir(resultFolderDrivesPath, resultFolderCleandedDirInfo(i1).name);
+                    resultFolderDrives = strcat(resultFolderDrivesPath, '\', resultFolderCleandedDirInfo(i1).name);
+                    cd(resultFolderDrives);
+                    saveFilename = strcat(subFolderDirInfo(i2).name(1 : end-4), '-OVERALL', '.mat');
                     save(saveFilename, 'overallTable');
                     cd(currentDir);
                 else
-                    overallTable = overallTable_temp;
+                    %
                 end
+                %if(height(overallTable) ~= 0)
+                %    overallTable = [overallTable; overallTable_temp];
+                %    currentDir = pwd;
+                %    cd(resultFolderDrivesPath);
+                %    save(saveFilename, 'overallTable');
+                %    cd(currentDir);
+                %else
+                %    overallTable = overallTable_temp;
+                %end
             end
         end
     end
